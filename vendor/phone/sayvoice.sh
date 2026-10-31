@@ -20,6 +20,7 @@ PITCH="0"           # 默认音高（候选：0 为元气少女感 255.7Hz；-4 
 BRIGHTNESS="2.5"     # 默认高频补偿 2.5 dB
 OUT_WAV=""
 ENGINE="auto"
+MODELS_DIR="${RVC_MODELS_DIR:-/sdcard/rvc/models/Dv5}"
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
@@ -38,6 +39,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --brightness=*)
       BRIGHTNESS="${1#*=}"
+      shift
+      ;;
+    --models-dir|--models_dir)
+      MODELS_DIR="$2"
+      shift 2
+      ;;
+    --models-dir=*|--models_dir=*)
+      MODELS_DIR="${1#*=}"
       shift
       ;;
     --out)
@@ -73,8 +82,15 @@ if [ ! -x "$SAY_BIN" ]; then
 fi
 
 RVC_SCRIPT="/sdcard/rvc/rvc_onnx.py"
-MODELS_DIR="/sdcard/rvc/models/Dv5"
+MODELS_DIR="${MODELS_DIR:-/sdcard/rvc/models/Dv5}"
 INDEX_PATH="$MODELS_DIR/Dv5.mobile.index"
+if [ ! -f "$INDEX_PATH" ]; then
+  # 尝试查找同目录下的任意 .index
+  FALLBACK_IDX=$(ls "$MODELS_DIR"/*.index 2>/dev/null | head -n 1 || true)
+  if [ -n "$FALLBACK_IDX" ]; then
+    INDEX_PATH="$FALLBACK_IDX"
+  fi
+fi
 
 # 独立并发工作区与干声路径
 TMP_DRY="/root/.dsh/voice/say_dry_${RUN_ID}.mp3"
