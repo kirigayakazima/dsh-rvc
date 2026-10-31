@@ -1,5 +1,6 @@
 # @dsh/rvc: RVC 拟人音色与 Heart 情绪自适应发音插件
 
+> **当前版本**: `0.1.2`  
 > **所属架构**: DSHA Sovereign Plugin Ecosystem  
 > **服务对象**: 小满（Dv5 大肥鱼少女音色）  
 > **协议绑定**: Heart Protocol v1 (Microkernel State & Activity Gate)
@@ -58,7 +59,10 @@ flowchart LR
 
 ---
 
-## 3. 注册工具
+## 3. 注册工具与参数 Schema 规范
+
+> [!NOTE]
+> **v0.1.2 关键加固**：适配 `@deepseek-ai/dsh-tools` 参数编译契约，`parameters` 必须是**直接平铺的属性字典**（例如 `{ text: { type: 'string', required: true, description: ... } }`），严禁包含外层 `{ type: 'object', properties: { ... } }`，杜绝 `JsonSchemaError: parameters.type must be a value schema object`。
 
 ### `rvc_speak`
 - **参数**:
@@ -76,3 +80,12 @@ flowchart LR
   - `task_name` (string, 必须): 任务名。
   - `pitch` (number, 可选): 变调半音数。
 - 启动全流程唱歌链（UVR MDX-Net 分离人声 -> RVC 音色转换 -> 伴奏重采样与限幅混音）。
+
+---
+
+## 4. 自动化测试
+
+```bash
+node --test test/*.js
+```
+所有 8 项声学映射、-2 拦截防线、静音期保护与 Heart 联动单测持续 100% 通过。
