@@ -36,15 +36,15 @@ describe('@dsh/rvc Cordis Plugin & Heart Protocol v1 Integration', () => {
         },
         evaluateActivity(intent) {
           if (!allowActivity) {
-            return { allow: false, reason: 'quiet_hours' }
+            return { suitable: false, reason: 'quiet-hours' }
           }
-          return { allow: true }
+          return { suitable: true, reason: 'ok' }
         },
         async observe(obs) {
           observed.push(obs)
         },
       },
-      qqbotSender: {
+      qqbotMediaSender: {
         async sendVoice(target, src) {
           sentVoices.push({ target, src })
         },
@@ -81,9 +81,10 @@ describe('@dsh/rvc Cordis Plugin & Heart Protocol v1 Integration', () => {
     const obs = ctx._observed[0]
     assert.equal(obs.type, 'audio')
     assert.equal(obs.source, 'rvc')
-    assert.equal(obs.text, '你好呀姐姐！')
-    assert.equal(obs.pitch, 0)
-    assert.equal(obs.emotion, 'joy')
+    assert.equal(obs.confidence, 1.0)
+    assert.equal(obs.evidence.text, '你好呀姐姐！')
+    assert.equal(obs.evidence.pitch, 0)
+    assert.equal(obs.evidence.emotion, 'joy')
   })
 
   test('Heart evaluateActivity 拦截：静音期阻断高能耗语音生成', async () => {
@@ -96,7 +97,7 @@ describe('@dsh/rvc Cordis Plugin & Heart Protocol v1 Integration', () => {
 
     assert.equal(res.ok, false)
     assert.equal(res.blocked_by_heart, true)
-    assert.equal(res.reason, 'quiet_hours')
+    assert.equal(res.reason, 'quiet-hours')
     assert.equal(ctx._observed.length, 0, '未实际发声，不应记录发声经验')
   })
 })
