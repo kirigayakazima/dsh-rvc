@@ -18,6 +18,7 @@ RUN_ID="$(date +%Y%m%d_%H%M%S 2>/dev/null || date +%s)_$$"
 TEXT=""
 PITCH="0"           # 默认音高（候选：0 为元气少女感 255.7Hz；-4 为沉稳日常 210.1Hz）
 BRIGHTNESS="2.5"     # 默认高频补偿 2.5 dB
+RATE=""             # 语速调节（如 +0%, +10%, -5%）
 OUT_WAV=""
 ENGINE="auto"
 MODELS_DIR="${RVC_MODELS_DIR:-/sdcard/rvc/models/Dv5}"
@@ -39,6 +40,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --brightness=*)
       BRIGHTNESS="${1#*=}"
+      shift
+      ;;
+    --rate)
+      RATE="$2"
+      shift 2
+      ;;
+    --rate=*)
+      RATE="${1#*=}"
       shift
       ;;
     --models-dir|--models_dir)
@@ -105,7 +114,11 @@ mkdir -p "$WORK_DIR" 2>/dev/null || true
 
 # 步骤 1: TTS 生成 (预期约 7s)
 echo "[sayvoice] 步骤 1/2: 生成干声 (预期约 7s)..." >&2
-DRY_AUDIO=$(bash "$SAY_BIN" "$TEXT" "zh-CN-XiaoxiaoNeural" "$TMP_DRY" --engine "$ENGINE")
+RATE_ARGS=()
+if [ -n "$RATE" ]; then
+  RATE_ARGS=(--rate "$RATE")
+fi
+DRY_AUDIO=$(bash "$SAY_BIN" "$TEXT" "zh-CN-XiaoxiaoNeural" "$TMP_DRY" --engine "$ENGINE" "${RATE_ARGS[@]}")
 
 if [ ! -f "$DRY_AUDIO" ] || [ ! -s "$DRY_AUDIO" ]; then
   echo "Error: Dry audio generation failed" >&2

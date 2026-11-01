@@ -42,6 +42,7 @@ LOG_FILE="${DEFAULT_DIR}/say.log"
 # Parse flags & positional args
 ENGINE="auto"
 FORMAT="auto"
+RATE=""
 POSITIONAL=()
 
 while [[ $# -gt 0 ]]; do
@@ -60,6 +61,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --format=*)
       FORMAT="${1#*=}"
+      shift
+      ;;
+    --rate)
+      RATE="$2"
+      shift 2
+      ;;
+    --rate=*)
+      RATE="${1#*=}"
       shift
       ;;
     *)
@@ -145,12 +154,14 @@ run_edge() {
   fi
 
   local ok=0
+  local rate_opt=()
+  [ -n "$RATE" ] && rate_opt=(--rate "$RATE")
   if [ -d "/root/.dsh/voice/lib" ]; then
-    if PYTHONPATH=/root/.dsh/voice/lib $timeout_cmd "$PYTHON_BIN" -m edge_tts --text "$TEXT" --voice "$VOICE_ARG" --write-media "$tmp_target" >/dev/null 2>&1; then
+    if PYTHONPATH=/root/.dsh/voice/lib $timeout_cmd "$PYTHON_BIN" -m edge_tts --text "$TEXT" --voice "$VOICE_ARG" "${rate_opt[@]}" --write-media "$tmp_target" >/dev/null 2>&1; then
       ok=1
     fi
   else
-    if $timeout_cmd "$PYTHON_BIN" -m edge_tts --text "$TEXT" --voice "$VOICE_ARG" --write-media "$tmp_target" >/dev/null 2>&1; then
+    if $timeout_cmd "$PYTHON_BIN" -m edge_tts --text "$TEXT" --voice "$VOICE_ARG" "${rate_opt[@]}" --write-media "$tmp_target" >/dev/null 2>&1; then
       ok=1
     fi
   fi
